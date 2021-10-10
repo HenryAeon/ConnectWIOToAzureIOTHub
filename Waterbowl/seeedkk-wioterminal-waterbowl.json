@@ -1,0 +1,170 @@
+{
+  "@id": "dtmi:local:wioterminal_smart_bowl;5",
+  "@type": "Interface",
+  "contents": [
+    {
+      "@id": "dtmi:local:wioterminal_smart_bowl:lWater;5",
+      "@type": [
+        "Telemetry",
+        "State"
+      ],
+      "description": {
+        "en": "Detect the water level depending where the sensor is placed."
+      },
+      "displayName": {
+        "en": "Low Water Detected"
+      },
+      "name": "lWater",
+      "schema": {
+        "@id": "dtmi:local:wioterminal_smart_bowl:lWater:schema;5",
+        "@type": "Enum",
+        "enumValues": [
+          {
+            "@id": "dtmi:local:wioterminal_smart_bowl:lWater:schema:hasWater;5",
+            "displayName": {
+              "en": "Water detected"
+            },
+            "enumValue": 0,
+            "name": "hasWater"
+          },
+          {
+            "@id": "dtmi:local:wioterminal_smart_bowl:lWater:schema:noWater;5",
+            "displayName": {
+              "en": "Refill water"
+            },
+            "enumValue": 1,
+            "name": "noWater"
+          }
+        ],
+        "valueSchema": "integer"
+      }
+    },
+    {
+      "@type": [
+        "Telemetry",
+        "LuminousIntensity"
+      ],
+      "description": {
+        "en": "Light sensor value (%) on backside.",
+        "ja": "背面にある光センサーの光量です。単位は%。"
+      },
+      "displayName": {
+        "en": "Light intensity",
+        "ja": "光量"
+      },
+      "name": "light",
+      "schema": "integer"
+    },
+    {
+      "@type": "Telemetry",
+      "description": {
+        "en": "Right button pushed down.",
+        "ja": "右ボタンの押下通知です。"
+      },
+      "displayName": {
+        "en": "Right button",
+        "ja": "右ボタン"
+      },
+      "name": "rightButton",
+      "schema": {
+        "@type": "Enum",
+        "enumValues": [
+          {
+            "displayName": {
+              "en": "Click"
+            },
+            "enumValue": "click",
+            "name": "click"
+          }
+        ],
+        "valueSchema": "string"
+      }
+    },
+    {
+      "@type": "Telemetry",
+      "description": {
+        "en": "Middle button pushed down.",
+        "ja": "中央ボタンの押下通知です。"
+      },
+      "displayName": {
+        "en": "Middle button",
+        "ja": "中央ボタン"
+      },
+      "name": "centerButton",
+      "schema": {
+        "@type": "Enum",
+        "enumValues": [
+          {
+            "displayName": {
+              "en": "Click"
+            },
+            "enumValue": "click",
+            "name": "click"
+          }
+        ],
+        "valueSchema": "string"
+      }
+    },
+    {
+      "@type": "Telemetry",
+      "description": {
+        "en": "Left button pushed down.",
+        "ja": "左ボタンの押下通知です。"
+      },
+      "displayName": {
+        "en": "Left button",
+        "ja": "左ボタン"
+      },
+      "name": "leftButton",
+      "schema": {
+        "@type": "Enum",
+        "enumValues": [
+          {
+            "displayName": {
+              "en": "Click"
+            },
+            "enumValue": "click",
+            "name": "click"
+          }
+        ],
+        "valueSchema": "string"
+      }
+    },
+    {
+      "@type": "Command",
+      "description": {
+        "en": "Beep the buzzer for specified duration.",
+        "ja": "指定された期間、ブザー音を鳴らします。"
+      },
+      "displayName": {
+        "en": "Ring buzzer",
+        "ja": "ブザーを鳴らす"
+      },
+      "name": "ringBuzzer",
+      "request": {
+        "@type": "CommandPayload",
+        "description": {
+          "en": "Buzzer duration (milliseconds)",
+          "ja": "ブザーを鳴らす期間（単位はミリ秒）"
+        },
+        "displayName": {
+          "en": "Duration",
+          "ja": "期間"
+        },
+        "name": "duration",
+        "schema": "integer"
+      }
+    }
+  ],
+  "description": {
+    "en": "Water Sensor detection, brightness and button click polling result. Buzzer can be beeped by settings on cloud.",
+    "ja": "加速度X,Y,Zと光量を定期的に通知します。また、右、中央、左ボタンのクリックも通知します。クラウドからの指示でブザーが鳴ります。"
+  },
+  "displayName": {
+    "en": "Seeed Wio Terminal"
+  },
+  "@context": [
+    "dtmi:iotcentral:context;2",
+    "dtmi:dtdl:context;2"
+  ]
+}
