@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <iostream>
 #include "Config.h"
 #include "Storage.h"
 #include "Signature.h"
@@ -349,11 +350,33 @@ static int ConnectToHub(az_iot_hub_client *iot_hub_client, const std::string &ho
 static az_result SendTelemetry()
 {
 
+  // Allocate a span to put the properties.
+  uint8_t property_buffer[128];
+  az_span property_span = AZ_SPAN_FROM_BUFFER(property_buffer);
+
+  // Initialize the property struct with the span.
+  az_iot_message_properties props;
+  AZ_RETURN_IF_FAILED(az_iot_message_properties_init(&props, property_span, 0));
+
+  // Append properties.
+  az_span int_span = 
+  {                                                   \
+    ._internal = {                                    \
+      .ptr = (uint8_t*)(&hasWater),                   \
+      .size = (sizeof(hasWater) - 1)                  \ 
+    },                                                \
+  };
+
+ // az_iot_message_properties_append(&props, AZ_SPAN_LITERAL_FROM_STR(PROPERTY_HAS_WATER),  int_span);
+
+  AZ_RETURN_IF_FAILED(az_iot_message_properties_append(&props, AZ_SPAN_LITERAL_FROM_STR(PROPERTY_BOWL_NAME), AZ_SPAN_LITERAL_FROM_STR("value")  ));
+
+
     int light;
     light = analogRead(WIO_LIGHT) * 100 / 1023;
 
     char telemetry_topic[128];
-    if (az_result_failed(az_iot_hub_client_telemetry_get_publish_topic(&HubClient, NULL, telemetry_topic, sizeof(telemetry_topic), NULL)))
+    if (az_result_failed(az_iot_hub_client_telemetry_get_publish_topic(&HubClient, &props, telemetry_topic, sizeof(telemetry_topic), NULL)))
     {
         Log("Failed az_iot_hub_client_telemetry_get_publish_topic" DLM);
         return AZ_ERROR_NOT_SUPPORTED;
@@ -367,9 +390,71 @@ static az_result SendTelemetry()
     //load telemetry payload
     AZ_RETURN_IF_FAILED(az_json_writer_append_property_name(&json_builder, AZ_SPAN_LITERAL_FROM_STR(TELEMETRY_HAS_WATER)));
     AZ_RETURN_IF_FAILED(az_json_writer_append_int32(&json_builder, hasWater));
-    //AZ_RETURN_IF_FAILED(az_json_writer_append_double(&json_builder, accelX, 3));
     AZ_RETURN_IF_FAILED(az_json_writer_append_property_name(&json_builder, AZ_SPAN_LITERAL_FROM_STR(TELEMETRY_LIGHT)));
     AZ_RETURN_IF_FAILED(az_json_writer_append_int32(&json_builder, light));
+
+
+    AZ_RETURN_IF_FAILED(az_json_writer_append_end_object(&json_builder));
+    const az_span out_payload{az_json_writer_get_bytes_used_in_destination(&json_builder)};
+
+    static int sendCount = 0;
+    if (!mqtt_client.publish(telemetry_topic, az_span_ptr(out_payload), az_span_size(out_payload), false))
+    {
+        DisplayPrintf("ERROR: Send telemetry %d", sendCount);
+    }
+    else
+    {
+        ++sendCount;
+        DisplayPrintf("Sent telemetry %d", sendCount);
+    }
+
+    return AZ_OK;
+}
+
+//TODO not used and in progress function
+static az_result SendProperty()
+{
+  // Allocate a span to put the properties.
+  uint8_t property_buffer[64];
+  az_span property_span = AZ_SPAN_FROM_BUFFER(property_buffer);
+
+  // Initialize the property struct with the span.
+  az_iot_message_properties props;
+  AZ_RETURN_IF_FAILED(az_iot_message_properties_init(&props, property_span, 0));
+
+  // Append properties.
+  az_span int_span = 
+  {                                                   \
+    ._internal = {                                    \
+      .ptr = (uint8_t*)(&hasWater),                   \
+      .size = (sizeof(hasWater) - 1)                  \ 
+    },                                                \
+  };
+
+ // az_iot_message_properties_append(&props, AZ_SPAN_LITERAL_FROM_STR(PROPERTY_HAS_WATER),  int_span);
+
+  AZ_RETURN_IF_FAILED(az_iot_message_properties_append(&props, AZ_SPAN_LITERAL_FROM_STR(PROPERTY_BOWL_NAME), AZ_SPAN_LITERAL_FROM_STR("value")  ));
+
+
+    char telemetry_topic[128];
+    if (az_result_failed(az_iot_hub_client_telemetry_get_publish_topic(&HubClient, &props, telemetry_topic, sizeof(telemetry_topic), NULL)))
+    {
+        Log("Failed az_iot_hub_client_telemetry_get_publish_topic" DLM);
+        return AZ_ERROR_NOT_SUPPORTED;
+    }
+
+
+    az_json_writer json_builder;
+    char payload[200];
+    AZ_RETURN_IF_FAILED(az_json_writer_init(&json_builder, AZ_SPAN_FROM_BUFFER(payload), NULL));
+    AZ_RETURN_IF_FAILED(az_json_writer_append_begin_object(&json_builder));
+
+    //load property payload
+    AZ_RETURN_IF_FAILED(az_json_writer_append_property_name(&json_builder, AZ_SPAN_LITERAL_FROM_STR(PROPERTY_HAS_WATER)));
+    AZ_RETURN_IF_FAILED(az_json_writer_append_int32(&json_builder, hasWater));
+    AZ_RETURN_IF_FAILED(az_json_writer_append_property_name(&json_builder, AZ_SPAN_LITERAL_FROM_STR(PROPERTY_BOWL_NAME)));
+    AZ_RETURN_IF_FAILED(az_json_writer_append_string(&json_builder, az_span_create_from_str((char*)Storage::RegistrationId.c_str())));
+
     AZ_RETURN_IF_FAILED(az_json_writer_append_end_object(&json_builder));
 
     const az_span out_payload{az_json_writer_get_bytes_used_in_destination(&json_builder)};
@@ -640,6 +725,9 @@ void loop()
 {
     ButtonDoWork();
 
+    
+    //DisplayPrintf(Storage::RegistrationId.c_str());
+
     // update sensor data
     hasWater = digitalRead(WATER_SENSOR);
     hasWater ? DisplayPrintf("No Water") : DisplayPrintf("Sensor has water");
@@ -653,12 +741,15 @@ void loop()
     spr.createSprite(220, 25); //create buffer, size hor, size vert
     spr.fillSprite(TFT_WHITE); //background color
     spr.setTextSize(3);
-    if (hasWater){
+    if (hasWater)
+    {
         //we have no water
         spr.setTextColor(TFT_RED);
         spr.drawString("Refill Water", 0, 0); //Display water value
         spr.pushSprite(80, 95);               //push to lcd
-    }else{
+    }
+    else
+    {
         // we have water
         spr.setTextColor(TFT_BLACK);
         spr.drawString("Sufficent", 0, 0); //Display water value

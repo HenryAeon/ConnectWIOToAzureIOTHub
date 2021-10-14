@@ -46,3 +46,6 @@
 #define TELEMETRY_CENTER_BUTTON             "centerButton"
 #define TELEMETRY_LEFT_BUTTON               "leftButton"
 #define COMMAND_RING_BUZZER					"ringBuzzer"
+#define PROPERTY_HAS_WATER                  "waterDetection"
+#define PROPERTY_BOWL_NAME                  "bowlName"
+

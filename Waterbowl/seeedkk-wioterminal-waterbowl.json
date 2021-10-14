@@ -154,6 +154,55 @@
         "name": "duration",
         "schema": "integer"
       }
+    },
+    {
+        "@id": "dtmi:local:wioterminal_smart_bowl:waterDetection;5",
+        "@type": [
+            "Property",
+            "State"
+        ],
+        "comment": "Property for water detection",
+        "displayName": {
+            "en": "Water Detection"
+        },
+        "name": "waterDetection",
+        "schema": {
+            "@id": "dtmi:local:wioterminal_smart_bowl:waterDetection:schema;5",
+            "@type": "Enum",
+            "enumValues": [
+                {
+                    "@id": "dtmi:local:wioterminal_smart_bowl:waterDetection:schema:WaterDetected;5",
+                    "displayName": {
+                        "en": "Water detected"
+                    },
+                    "enumValue": 0,
+                    "name": "WaterDetected"
+                },
+                {
+                    "@id": "dtmi:local:wioterminal_smart_bowl:waterDetection:schema:RefillWater;5",
+                    "displayName": {
+                        "en": "Refill water"
+                    },
+                    "enumValue": 1,
+                    "name": "RefillWater"
+                }
+            ],
+            "valueSchema": "integer"
+        },
+        "writable": false
+    },
+    {
+        "@id": "dtmi:local:wioterminal_smart_bowl:bowlName;5",
+        "@type": "Property",
+        "description": {
+            "en": "Name your dogs bowl. Depends if you have more than 1 dog bowl and want to know which one is empty"
+        },
+        "displayName": {
+            "en": "Bowl Name"
+        },
+        "name": "bowlName",
+        "schema": "string",
+        "writable": false
     }
   ],
   "description": {
